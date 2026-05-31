@@ -47,3 +47,4 @@ flutter run
 
 ## App Icon
 Replace `android/app/src/main/res/mipmap-*/ic_launcher.png` with your `favicon.png` for each density, or use `flutter_launcher_icons` package.
+fuck yeah
