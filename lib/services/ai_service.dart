@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class AiService {
   static const _endpoint =
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
+      'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent';
 
   static String apiKey = '';
 
@@ -24,7 +24,6 @@ class AiService {
           'generationConfig': {
             'temperature': temp,
             'maxOutputTokens': tokens,
-            'responseMimeType': 'application/json',
           },
         }),
       );
@@ -113,7 +112,7 @@ class AiService {
       'usedWords (array of target words the student used), '
       'missedWords (array of target words the student missed), '
       'feedback (string, 1-2 sentences of specific helpful feedback), '
-      'improvedVersion (string, a better version of their sentence or empty string if already good). '
+      'improvedVersion (string, better version of their sentence or empty string if good). '
       'Return only valid JSON, nothing else.',
       temp: 0.3,
       tokens: 400,
@@ -130,8 +129,7 @@ class AiService {
       'contexts (array of 4 objects each with source string and example string, '
       'sources should be: Twitter/X, News headline, Casual conversation, Business/Professional), '
       'register (string: formal or informal or neutral), '
-      'commonMistake (string), '
-      'nativeTip (string). '
+      'commonMistake (string), nativeTip (string). '
       'Return only valid JSON, nothing else.',
       temp: 0.5,
       tokens: 500,
