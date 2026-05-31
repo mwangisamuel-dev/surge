@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -23,6 +24,11 @@ class _HomeScreenState extends State<HomeScreen> {
   List<WordEntry> _recent = [];
   bool _loadingWotd = false;
 
+  // Rotating suggestions
+  List<Map<String, dynamic>> _suggestions = [];
+  int _suggestionIndex = 0;
+  Timer? _suggestionTimer;
+
   @override
   void initState() {
     super.initState();
@@ -34,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await _storage!.updateStreak();
     _refresh();
     _loadWotd();
+    _loadSuggestions();
   }
 
   void _refresh() {
@@ -53,6 +60,25 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) setState(() { _wotd = fresh; _loadingWotd = false; });
   }
 
+  Future<void> _loadSuggestions() async {
+    final list = await AiService.getWordSuggestions();
+    if (!mounted) return;
+    setState(() => _suggestions = list);
+    // Rotate every 4 seconds
+    _suggestionTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted) return;
+      setState(() {
+        _suggestionIndex = (_suggestionIndex + 1) % _suggestions.length;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _suggestionTimer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,6 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(child: _buildHeader()),
             SliverToBoxAdapter(child: _buildStatsRow()),
             SliverToBoxAdapter(child: _buildWotdCard()),
+            SliverToBoxAdapter(child: _buildSuggestions()),
             SliverToBoxAdapter(child: _buildDailyChallenge()),
             SliverToBoxAdapter(child: _buildRecentSection()),
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
@@ -80,7 +107,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
       child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           Text(_greeting().toUpperCase(), style: GoogleFonts.dmSans(
             fontSize: 11, letterSpacing: 2,
             color: SurgeColors.textMuted, fontWeight: FontWeight.w700)),
@@ -233,8 +261,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 end: Alignment.bottomRight,
               ),
               boxShadow: [BoxShadow(
-                color: SurgeColors.violet.withOpacity(0.3),
-                blurRadius: 24, offset: const Offset(0, 8))],
+                color: SurgeColors.violet.withOpacity(0.25),
+                blurRadius: 20, offset: const Offset(0, 6))],
             ),
             child: Padding(
               padding: const EdgeInsets.all(22),
@@ -301,7 +329,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                   if ((_wotd!['funFact'] ?? '').toString().isNotEmpty) ...[
                     const SizedBox(height: 10),
-                    Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                       const Text('⚡ ', style: TextStyle(fontSize: 13)),
                       Expanded(child: Text(_wotd!['funFact'].toString(),
                         style: GoogleFonts.dmSans(
@@ -318,9 +347,93 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildSuggestions() {
+    if (_suggestions.isEmpty) return const SizedBox.shrink();
+    final current = _suggestions[_suggestionIndex];
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Text('Discover', style: GoogleFonts.dmSans(
+            fontSize: 16, fontWeight: FontWeight.w700,
+            color: SurgeColors.textPrimary)),
+          const Spacer(),
+          // Dot indicators
+          Row(children: List.generate(_suggestions.length, (i) =>
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.only(left: 4),
+              width: i == _suggestionIndex ? 16 : 5,
+              height: 5,
+              decoration: BoxDecoration(
+                color: i == _suggestionIndex
+                  ? SurgeColors.cyan : SurgeColors.border,
+                borderRadius: BorderRadius.circular(3)),
+            ))),
+        ]),
+        const SizedBox(height: 10),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 400),
+          transitionBuilder: (child, anim) => FadeTransition(
+            opacity: anim,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.05, 0),
+                end: Offset.zero,
+              ).animate(anim),
+              child: child,
+            ),
+          ),
+          child: GestureDetector(
+            key: ValueKey(_suggestionIndex),
+            onTap: () => Navigator.push(context, MaterialPageRoute(
+              builder: (_) => AddWordScreen(
+                prefill: current['word']?.toString())
+            )).then((_) => _refresh()),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: SurgeColors.card,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: SurgeColors.cyan.withOpacity(0.2)),
+              ),
+              child: Row(children: [
+                Container(
+                  width: 42, height: 42,
+                  decoration: BoxDecoration(
+                    color: SurgeColors.cyan.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12)),
+                  child: const Center(child: Text('💡',
+                    style: TextStyle(fontSize: 20))),
+                ),
+                const SizedBox(width: 14),
+                Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(current['word']?.toString() ?? '',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 15, fontWeight: FontWeight.w800,
+                        color: SurgeColors.textPrimary)),
+                    Text(current['hint']?.toString() ?? '',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 12, color: SurgeColors.textMuted)),
+                  ],
+                )),
+                const Icon(Icons.add_circle_outline_rounded,
+                  color: SurgeColors.cyan, size: 20),
+              ]),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+
   Widget _buildDailyChallenge() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
       child: GestureDetector(
         onTap: () => Navigator.push(context, MaterialPageRoute(
           builder: (_) => const DailyChallengeScreen())),
@@ -329,31 +442,31 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: BoxDecoration(
             color: SurgeColors.card,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: SurgeColors.warning.withOpacity(0.3)),
+            border: Border.all(color: SurgeColors.warning.withOpacity(0.25)),
           ),
           child: Row(children: [
             Container(
-              width: 48, height: 48,
+              width: 46, height: 46,
               decoration: BoxDecoration(
-                color: SurgeColors.warning.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(14)),
+                color: SurgeColors.warning.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(13)),
               child: const Center(child: Text('🔥',
-                style: TextStyle(fontSize: 22))),
+                style: TextStyle(fontSize: 20))),
             ),
             const SizedBox(width: 14),
             Expanded(child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Daily Challenge', style: GoogleFonts.dmSans(
-                  fontSize: 15, fontWeight: FontWeight.w800,
+                  fontSize: 14, fontWeight: FontWeight.w800,
                   color: SurgeColors.textPrimary)),
-                Text('Use your words in a sentence — get graded by AI',
+                Text('Write a sentence — get graded by AI',
                   style: GoogleFonts.dmSans(
                     fontSize: 12, color: SurgeColors.textMuted)),
               ],
             )),
             const Icon(Icons.chevron_right_rounded,
-              color: SurgeColors.textMuted, size: 20),
+              color: SurgeColors.textMuted, size: 18),
           ]),
         ),
       ).animate().fadeIn(delay: 180.ms),
@@ -362,7 +475,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildRecentSection() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const SectionHeader(title: 'Recently Added'),
         const SizedBox(height: 12),
