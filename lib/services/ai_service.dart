@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class AiService {
   static const _endpoint =
-      'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent';
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
   static String apiKey = '';
 
