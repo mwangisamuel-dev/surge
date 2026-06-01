@@ -17,11 +17,8 @@ class _MainNavState extends State<MainNav> {
   int _index = 0;
 
   final _pages = const [
-    HomeScreen(),
-    BankScreen(),
-    DrillScreen(),
-    NotesScreen(),
-    ProgressScreen(),
+    HomeScreen(), BankScreen(), DrillScreen(),
+    NotesScreen(), ProgressScreen(),
   ];
 
   void _onTap(int i) {
@@ -40,56 +37,67 @@ class _MainNavState extends State<MainNav> {
 
   Widget _buildNavBar() {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: SurgeColors.surface,
-        border: Border(top: BorderSide(color: SurgeColors.border, width: 0.5)),
+        border: const Border(
+          top: BorderSide(color: SurgeColors.border, width: 0.5)),
       ),
       child: SafeArea(
         top: false,
-        child: SizedBox(
-          height: 64,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8, vertical: 8),
           child: Row(children: [
-            _navItem(0, Icons.home_rounded,       'Home'),
-            _navItem(1, Icons.menu_book_rounded,  'Bank'),
-            _centerButton(),
-            _navItem(3, Icons.edit_note_rounded,  'Notes'),
-            _navItem(4, Icons.bar_chart_rounded,  'Progress'),
+            _navItem(0, Icons.home_rounded,      Icons.home_outlined,         'Home'),
+            _navItem(1, Icons.menu_book_rounded, Icons.menu_book_outlined,    'Bank'),
+            _centerDrillButton(),
+            _navItem(3, Icons.edit_note_rounded, Icons.edit_outlined,         'Notes'),
+            _navItem(4, Icons.bar_chart_rounded, Icons.bar_chart_outlined,    'Stats'),
           ]),
         ),
       ),
     );
   }
 
-  Widget _navItem(int idx, IconData icon, String label) {
-    final selected = _index == idx;
+  Widget _navItem(int idx, IconData active, IconData inactive, String label) {
+    final sel = _index == idx;
     return Expanded(
       child: GestureDetector(
         onTap: () => _onTap(idx),
         behavior: HitTestBehavior.opaque,
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            decoration: BoxDecoration(
-              color: selected
-                ? SurgeColors.cyan.withOpacity(0.12)
-                : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14, vertical: 5),
+              decoration: BoxDecoration(
+                color: sel
+                  ? SurgeColors.violet.withOpacity(0.12)
+                  : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(sel ? active : inactive,
+                color: sel
+                  ? SurgeColors.violetLight
+                  : SurgeColors.textMuted,
+                size: 22),
             ),
-            child: Icon(icon,
-              color: selected ? SurgeColors.cyan : SurgeColors.textMuted,
-              size: 22),
-          ),
-          const SizedBox(height: 2),
-          Text(label, style: GoogleFonts.dmSans(
-            fontSize: 10, fontWeight: FontWeight.w600,
-            color: selected ? SurgeColors.cyan : SurgeColors.textMuted)),
-        ]),
+            const SizedBox(height: 3),
+            Text(label, style: GoogleFonts.plusJakartaSans(
+              fontSize: 10, fontWeight: FontWeight.w600,
+              color: sel
+                ? SurgeColors.violetLight
+                : SurgeColors.textMuted)),
+          ]),
+        ),
       ),
     );
   }
 
-  Widget _centerButton() {
+  Widget _centerDrillButton() {
     final active = _index == 2;
     return Expanded(
       child: GestureDetector(
@@ -97,16 +105,17 @@ class _MainNavState extends State<MainNav> {
         child: Center(
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            width: 50, height: 50,
+            width: 52, height: 52,
             decoration: BoxDecoration(
               gradient: active
-                ? SurgeColors.gradientCyan
+                ? SurgeColors.gradientMint
                 : SurgeColors.gradientViolet,
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(16),
               boxShadow: [BoxShadow(
-                color: (active ? SurgeColors.cyan : SurgeColors.violet)
-                  .withOpacity(0.45),
-                blurRadius: 16, offset: const Offset(0, 4))],
+                color: (active
+                  ? SurgeColors.mint
+                  : SurgeColors.violet).withOpacity(0.35),
+                blurRadius: 14, offset: const Offset(0, 4))],
             ),
             child: const Icon(Icons.style_rounded,
               color: Colors.white, size: 22),

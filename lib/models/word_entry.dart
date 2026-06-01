@@ -60,11 +60,13 @@ class WordEntry {
     missCount: missCount ?? this.missCount,
   );
 }
-
 extension WordTagX on WordTag {
-  String get label => const ['Vocab','Idiom','Phrasal','Slang','Grammar','Formal'][index];
-  int get colorHex => const [0xFF7B2FFF,0xFF00F5D4,0xFFFF6B6B,0xFFFFB347,0xFF22C55E,0xFF818CF8][index];
+  String get label   => const ['Vocab','Idiom','Phrasal','Slang','Grammar','Formal'][index];
+  int    get colorHex=> const [0xFF7C6EFA,0xFF4ECDC4,0xFFFF9E7E,0xFFFFD166,0xFF95C8B0,0xFFB8A9FF][index];
+  String get emoji   => const ['📖','💬','🔗','😎','✏️','🎓'][index];
 }
+
+
 
 extension MasteryX on MasteryLevel {
   String get label => const ['Learning','Familiar','Mastered'][index];
