@@ -46,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(colors: [
-                  SurgeColors.cyan.withOpacity(0.12),
+                  SurgeColors.mint.withOpacity(0.12),
                   Colors.transparent,
                 ]),
               ),
@@ -80,7 +80,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     child: LinearProgressIndicator(
                       backgroundColor: SurgeColors.border,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        SurgeColors.cyan),
+                        SurgeColors.mint),
                       minHeight: 2,
                     ),
                   ),

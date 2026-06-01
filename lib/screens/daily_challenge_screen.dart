@@ -102,13 +102,13 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen> {
             TextButton(
               onPressed: _reset,
               child: Text('New', style: GoogleFonts.dmSans(
-                color: SurgeColors.cyan, fontWeight: FontWeight.w700)),
+                color: SurgeColors.mint, fontWeight: FontWeight.w700)),
             ),
         ],
       ),
       body: _loading
         ? const Center(child: CircularProgressIndicator(
-            color: SurgeColors.cyan, strokeWidth: 2))
+            color: SurgeColors.mint, strokeWidth: 2))
         : _challenge == null
           ? _buildNoKey()
           : SingleChildScrollView(
@@ -153,7 +153,7 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen> {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [SurgeColors.violet.withOpacity(0.9), SurgeColors.cyan.withOpacity(0.7)],
+            colors: [SurgeColors.violet.withOpacity(0.9), SurgeColors.mint.withOpacity(0.7)],
             begin: Alignment.topLeft, end: Alignment.bottomRight),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [BoxShadow(
@@ -217,9 +217,9 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: SurgeColors.cyan.withOpacity(0.08),
+            color: SurgeColors.mint.withOpacity(0.08),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: SurgeColors.cyan.withOpacity(0.2)),
+            border: Border.all(color: SurgeColors.mint.withOpacity(0.2)),
           ),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text('💡 ', style: TextStyle(fontSize: 14)),
@@ -386,7 +386,7 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen> {
           decoration: BoxDecoration(
             color: SurgeColors.card,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: SurgeColors.cyan.withOpacity(0.2))),
+            border: Border.all(color: SurgeColors.mint.withOpacity(0.2))),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text('🎯 ', style: TextStyle(fontSize: 16)),
             Expanded(child: Text(feedback, style: GoogleFonts.dmSans(
@@ -406,7 +406,7 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [SurgeColors.violet.withOpacity(0.1), SurgeColors.cyan.withOpacity(0.05)],
+              colors: [SurgeColors.violet.withOpacity(0.1), SurgeColors.mint.withOpacity(0.05)],
               begin: Alignment.topLeft, end: Alignment.bottomRight),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: SurgeColors.violet.withOpacity(0.2))),

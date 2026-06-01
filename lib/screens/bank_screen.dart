@@ -118,7 +118,7 @@ class _BankScreenState extends State<BankScreen> {
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
       children: [
-        _filterChip('All', _activeTag == null, () => setState(() { _activeTag = null; _applyFilter(); }), SurgeColors.cyan),
+        _filterChip('All', _activeTag == null, () => setState(() { _activeTag = null; _applyFilter(); }), SurgeColors.mint),
         ...WordTag.values.map((t) => Padding(
           padding: const EdgeInsets.only(left: 8),
           child: TagChip(

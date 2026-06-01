@@ -107,7 +107,7 @@ class _NoteCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: SurgeColors.gradientDark,
+          gradient: SurgeColors.gradientCard,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: SurgeColors.warning.withOpacity(0.2)),
           boxShadow: [BoxShadow(color: SurgeColors.warning.withOpacity(0.06), blurRadius: 16)],

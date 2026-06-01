@@ -54,7 +54,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       body: SafeArea(
         child: _loading
           ? const Center(child: CircularProgressIndicator(
-              color: SurgeColors.cyan, strokeWidth: 2))
+              color: SurgeColors.mint, strokeWidth: 2))
           : RefreshIndicator(
               color: SurgeColors.violet,
               backgroundColor: SurgeColors.card,
@@ -343,7 +343,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     : SurgeColors.surface,
                   borderRadius: BorderRadius.circular(5),
                   border: isToday
-                    ? Border.all(color: SurgeColors.cyan, width: 1.5)
+                    ? Border.all(color: SurgeColors.mint, width: 1.5)
                     : null,
                 ),
               );
@@ -357,7 +357,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               border: SurgeColors.border),
             const SizedBox(width: 14),
             _calLegend(SurgeColors.surface, 'Today',
-              border: SurgeColors.cyan),
+              border: SurgeColors.mint),
           ]),
         ]),
     ).animate().fadeIn(delay: 240.ms);

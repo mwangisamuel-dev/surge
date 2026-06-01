@@ -113,7 +113,7 @@ class _DrillScreenState extends State<DrillScreen>
       return const Scaffold(
         backgroundColor: SurgeColors.background,
         body: Center(child: CircularProgressIndicator(
-          color: SurgeColors.cyan, strokeWidth: 2)),
+          color: SurgeColors.mint, strokeWidth: 2)),
       );
     }
     if (_deck.isEmpty) {
@@ -162,7 +162,7 @@ class _DrillScreenState extends State<DrillScreen>
                 value: progress,
                 backgroundColor: SurgeColors.card,
                 valueColor: const AlwaysStoppedAnimation<Color>(
-                  SurgeColors.cyan),
+                  SurgeColors.mint),
                 minHeight: 3,
               ),
             ),
@@ -407,7 +407,7 @@ class _DrillScreenState extends State<DrillScreen>
                 margin: const EdgeInsets.symmetric(horizontal: 24)),
               _resultStat('Score',
                 '${((_gotIt / _deck.length) * 100).round()}%',
-                SurgeColors.cyan),
+                SurgeColors.mint),
             ]),
             const SizedBox(height: 44),
             SurgeButton(

@@ -120,7 +120,7 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
                 const SizedBox(height: 14),
                 _sectionLabel('Example'),
                 GlowCard(
-                  glowColor: SurgeColors.cyan,
+                  glowColor: SurgeColors.mint,
                   padding: const EdgeInsets.all(16),
                   child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text('💬 ', style: const TextStyle(fontSize: 16)),

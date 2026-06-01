@@ -127,7 +127,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _sectionTitle('About'),
           const SizedBox(height: 10),
           GlowCard(
-            glowColor: SurgeColors.cyan,
+            glowColor: SurgeColors.mint,
             padding: const EdgeInsets.all(18),
             child: Column(children: [
               _infoRow('App', 'Surge'),
