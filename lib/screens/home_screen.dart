@@ -24,8 +24,18 @@ class _HomeScreenState extends State<HomeScreen> {
   List<WordEntry> _recent = [];
   bool _loadingWotd = false;
 
-  // Rotating suggestions
-  List<Map<String, dynamic>> _suggestions = [];
+  // Always-available rotating suggestions
+  final List<Map<String, dynamic>> _suggestions = [
+    {'word': 'Ephemeral',      'hint': 'Lasting for a very short time'},
+    {'word': 'Tenacious',      'hint': 'Holding firm despite opposition'},
+    {'word': 'Eloquent',       'hint': 'Fluent and persuasive in speech'},
+    {'word': 'Perspicacious',  'hint': 'Quick to notice and understand things'},
+    {'word': 'Sanguine',       'hint': 'Optimistic especially in difficulties'},
+    {'word': 'Equivocate',     'hint': 'Use vague language to avoid commitment'},
+    {'word': 'Nonchalant',     'hint': 'Calm and casually unconcerned'},
+    {'word': 'Insidious',      'hint': 'Proceeding harmfully in a subtle way'},
+  ];
+
   int _suggestionIndex = 0;
   Timer? _suggestionTimer;
 
@@ -33,6 +43,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _init();
+    // Start rotating immediately — no API needed
+    _suggestionTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!mounted) return;
+      setState(() {
+        _suggestionIndex = (_suggestionIndex + 1) % _suggestions.length;
+      });
+    });
   }
 
   Future<void> _init() async {
@@ -40,7 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
     await _storage!.updateStreak();
     _refresh();
     _loadWotd();
-    _loadSuggestions();
   }
 
   void _refresh() {
@@ -58,19 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final fresh = await AiService.getWordOfTheDay();
     if (fresh != null) await _storage!.cacheWotd(fresh);
     if (mounted) setState(() { _wotd = fresh; _loadingWotd = false; });
-  }
-
-  Future<void> _loadSuggestions() async {
-    final list = await AiService.getWordSuggestions();
-    if (!mounted) return;
-    setState(() => _suggestions = list);
-    // Rotate every 4 seconds
-    _suggestionTimer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (!mounted) return;
-      setState(() {
-        _suggestionIndex = (_suggestionIndex + 1) % _suggestions.length;
-      });
-    });
   }
 
   @override
@@ -107,38 +110,42 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
       child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-          Text(_greeting().toUpperCase(), style: GoogleFonts.dmSans(
-            fontSize: 11, letterSpacing: 2,
-            color: SurgeColors.textMuted, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 4),
-          Row(children: [
-            ShaderMask(
-              shaderCallback: (b) => const LinearGradient(
-                colors: [SurgeColors.violet, SurgeColors.cyan],
-              ).createShader(b),
-              child: Text('SURGE', style: GoogleFonts.dmSans(
-                fontSize: 30, fontWeight: FontWeight.w900,
-                color: Colors.white, letterSpacing: -0.5)),
-            ),
-            if (streak > 0) ...[
-              const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: SurgeColors.warning.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: SurgeColors.warning.withOpacity(0.3)),
-                ),
-                child: Text('$streak day streak 🔥',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 11, fontWeight: FontWeight.w700,
-                    color: SurgeColors.warning)),
+            Text(_greeting().toUpperCase(), style: GoogleFonts.dmSans(
+              fontSize: 11, letterSpacing: 2,
+              color: SurgeColors.textMuted, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 4),
+            Row(children: [
+              ShaderMask(
+                shaderCallback: (b) => const LinearGradient(
+                  colors: [SurgeColors.violet, SurgeColors.cyan],
+                ).createShader(b),
+                child: Text('SURGE', style: GoogleFonts.dmSans(
+                  fontSize: 30, fontWeight: FontWeight.w900,
+                  color: Colors.white, letterSpacing: -0.5)),
               ),
-            ],
-          ]),
-        ])),
+              if (streak > 0) ...[
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: SurgeColors.warning.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: SurgeColors.warning.withOpacity(0.3)),
+                  ),
+                  child: Text('$streak day streak 🔥',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 11, fontWeight: FontWeight.w700,
+                      color: SurgeColors.warning)),
+                ),
+              ],
+            ]),
+          ],
+        )),
         GestureDetector(
           onTap: () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => const SettingsScreen())),
@@ -164,9 +171,11 @@ class _HomeScreenState extends State<HomeScreen> {
               gradient: SurgeColors.gradientViolet,
               borderRadius: BorderRadius.circular(13),
               boxShadow: [BoxShadow(
-                color: SurgeColors.violet.withOpacity(0.4), blurRadius: 12)],
+                color: SurgeColors.violet.withOpacity(0.4),
+                blurRadius: 12)],
             ),
-            child: const Icon(Icons.add_rounded, color: Colors.white, size: 22),
+            child: const Icon(Icons.add_rounded,
+              color: Colors.white, size: 22),
           ),
         ),
       ]).animate().fadeIn(duration: 400.ms),
@@ -348,8 +357,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildSuggestions() {
-    if (_suggestions.isEmpty) return const SizedBox.shrink();
     final current = _suggestions[_suggestionIndex];
+    final dotCount = _suggestions.length;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
@@ -359,29 +368,31 @@ class _HomeScreenState extends State<HomeScreen> {
             fontSize: 16, fontWeight: FontWeight.w700,
             color: SurgeColors.textPrimary)),
           const Spacer(),
-          // Dot indicators
-          Row(children: List.generate(_suggestions.length, (i) =>
+          Row(children: List.generate(dotCount, (i) =>
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               margin: const EdgeInsets.only(left: 4),
-              width: i == _suggestionIndex ? 16 : 5,
+              width: i == _suggestionIndex ? 14 : 5,
               height: 5,
               decoration: BoxDecoration(
                 color: i == _suggestionIndex
-                  ? SurgeColors.cyan : SurgeColors.border,
+                  ? SurgeColors.cyan
+                  : SurgeColors.border,
                 borderRadius: BorderRadius.circular(3)),
-            ))),
+            ),
+          )),
         ]),
         const SizedBox(height: 10),
         AnimatedSwitcher(
-          duration: const Duration(milliseconds: 400),
+          duration: const Duration(milliseconds: 450),
           transitionBuilder: (child, anim) => FadeTransition(
             opacity: anim,
             child: SlideTransition(
               position: Tween<Offset>(
-                begin: const Offset(0.05, 0),
+                begin: const Offset(0.12, 0),
                 end: Offset.zero,
-              ).animate(anim),
+              ).animate(CurvedAnimation(
+                parent: anim, curve: Curves.easeOut)),
               child: child,
             ),
           ),
@@ -389,7 +400,7 @@ class _HomeScreenState extends State<HomeScreen> {
             key: ValueKey(_suggestionIndex),
             onTap: () => Navigator.push(context, MaterialPageRoute(
               builder: (_) => AddWordScreen(
-                prefill: current['word']?.toString())
+                prefill: current['word']?.toString()),
             )).then((_) => _refresh()),
             child: Container(
               width: double.infinity,
@@ -397,7 +408,8 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 color: SurgeColors.card,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: SurgeColors.cyan.withOpacity(0.2)),
+                border: Border.all(
+                  color: SurgeColors.cyan.withOpacity(0.2)),
               ),
               child: Row(children: [
                 Container(
@@ -416,6 +428,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: GoogleFonts.dmSans(
                         fontSize: 15, fontWeight: FontWeight.w800,
                         color: SurgeColors.textPrimary)),
+                    const SizedBox(height: 2),
                     Text(current['hint']?.toString() ?? '',
                       style: GoogleFonts.dmSans(
                         fontSize: 12, color: SurgeColors.textMuted)),
@@ -442,7 +455,8 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: BoxDecoration(
             color: SurgeColors.card,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: SurgeColors.warning.withOpacity(0.25)),
+            border: Border.all(
+              color: SurgeColors.warning.withOpacity(0.25)),
           ),
           child: Row(children: [
             Container(
