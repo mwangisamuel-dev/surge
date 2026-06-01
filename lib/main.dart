@@ -12,7 +12,7 @@ void main() async {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: Color(0xFF08080F),
+    systemNavigationBarColor: Color(0xFF0C0C14),
     systemNavigationBarIconBrightness: Brightness.light,
   ));
   final storage = await StorageService.get();

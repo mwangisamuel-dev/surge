@@ -30,7 +30,9 @@ class _MainNavState extends State<MainNav> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: SurgeColors.background,
-      body: IndexedStack(index: _index, children: _pages),
+      body: Navigator(
+        onGenerateRoute: (_) => null,
+      ),
       bottomNavigationBar: _buildNavBar(),
     );
   }
