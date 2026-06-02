@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 class AiService {
   // gemini-2.5-flash works with v1beta for AI Studio keys
   static const _base = 'https://generativelanguage.googleapis.com/v1beta/models';
-  static const _model = 'gemini-2.5-flash-preview-05-20';
+  static const _model = 'gemini-2.5-flash-preview';
 
   static String apiKey = '';
 

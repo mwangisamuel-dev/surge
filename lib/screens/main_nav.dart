@@ -30,9 +30,7 @@ class _MainNavState extends State<MainNav> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: SurgeColors.background,
-      body: Navigator(
-        onGenerateRoute: (_) => null,
-      ),
+      body: IndexedStack(index: _index, children: _pages),
       bottomNavigationBar: _buildNavBar(),
     );
   }
@@ -47,14 +45,13 @@ class _MainNavState extends State<MainNav> {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 8, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Row(children: [
-            _navItem(0, Icons.home_rounded,      Icons.home_outlined,         'Home'),
-            _navItem(1, Icons.menu_book_rounded, Icons.menu_book_outlined,    'Bank'),
+            _navItem(0, Icons.home_rounded,      Icons.home_outlined,      'Home'),
+            _navItem(1, Icons.menu_book_rounded, Icons.menu_book_outlined, 'Bank'),
             _centerDrillButton(),
-            _navItem(3, Icons.edit_note_rounded, Icons.edit_outlined,         'Notes'),
-            _navItem(4, Icons.bar_chart_rounded, Icons.bar_chart_outlined,    'Stats'),
+            _navItem(3, Icons.edit_note_rounded, Icons.edit_outlined,      'Notes'),
+            _navItem(4, Icons.bar_chart_rounded, Icons.bar_chart_outlined, 'Stats'),
           ]),
         ),
       ),
@@ -67,34 +64,27 @@ class _MainNavState extends State<MainNav> {
       child: GestureDetector(
         onTap: () => _onTap(idx),
         behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14, vertical: 5),
-              decoration: BoxDecoration(
-                color: sel
-                  ? SurgeColors.violet.withOpacity(0.12)
-                  : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(sel ? active : inactive,
-                color: sel
-                  ? SurgeColors.violetLight
-                  : SurgeColors.textMuted,
-                size: 22),
-            ),
-            const SizedBox(height: 3),
-            Text(label, style: GoogleFonts.plusJakartaSans(
-              fontSize: 10, fontWeight: FontWeight.w600,
+        child: Column(mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+            decoration: BoxDecoration(
               color: sel
-                ? SurgeColors.violetLight
-                : SurgeColors.textMuted)),
-          ]),
-        ),
+                ? SurgeColors.violet.withOpacity(0.12)
+                : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(sel ? active : inactive,
+              color: sel ? SurgeColors.violetLight : SurgeColors.textMuted,
+              size: 22),
+          ),
+          const SizedBox(height: 3),
+          Text(label, style: GoogleFonts.plusJakartaSans(
+            fontSize: 10, fontWeight: FontWeight.w600,
+            color: sel ? SurgeColors.violetLight : SurgeColors.textMuted)),
+        ]),
       ),
     );
   }
@@ -114,9 +104,8 @@ class _MainNavState extends State<MainNav> {
                 : SurgeColors.gradientViolet,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [BoxShadow(
-                color: (active
-                  ? SurgeColors.mint
-                  : SurgeColors.violet).withOpacity(0.35),
+                color: (active ? SurgeColors.mint : SurgeColors.violet)
+                  .withOpacity(0.35),
                 blurRadius: 14, offset: const Offset(0, 4))],
             ),
             child: const Icon(Icons.style_rounded,

@@ -23,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, int> _stats = {};
   List<WordEntry> _recent = [];
   bool _loadingWotd = false;
+  bool _ready = false;
 
   final List<Map<String, dynamic>> _suggestions = [
     {'word': 'Ephemeral',     'hint': 'Lasting a very short time',         'color': 0xFF7C6EFA},
@@ -42,6 +43,19 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _init();
+  }
+
+  Future<void> _init() async {
+    _storage = await StorageService.get();
+    await _storage!.updateStreak();
+    if (!mounted) return;
+    setState(() {
+      _stats  = _storage!.getStats();
+      _recent = _storage!.getWords().take(4).toList();
+      _ready  = true;
+    });
+    _loadWotd();
+    // Start timer only after storage is ready
     _suggestionTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       if (!mounted) return;
       setState(() =>
@@ -49,15 +63,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _init() async {
-    _storage = await StorageService.get();
-    await _storage!.updateStreak();
-    _refresh();
-    _loadWotd();
-  }
-
   void _refresh() {
-    if (!mounted) return;
+    if (!mounted || _storage == null) return;
     setState(() {
       _stats  = _storage!.getStats();
       _recent = _storage!.getWords().take(4).toList();
@@ -65,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadWotd() async {
+    if (_storage == null) return;
     final cached = _storage!.getCachedWotd();
     if (cached != null) { setState(() => _wotd = cached); return; }
     setState(() => _loadingWotd = true);
@@ -78,6 +86,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_ready) {
+      return Scaffold(
+        backgroundColor: SurgeColors.background,
+        body: const Center(child: CircularProgressIndicator(
+          color: SurgeColors.violet, strokeWidth: 2)),
+      );
+    }
+
     return Scaffold(
       backgroundColor: SurgeColors.background,
       body: SafeArea(
@@ -114,8 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
               Text('Surge', style: GoogleFonts.plusJakartaSans(
                 fontSize: 32, fontWeight: FontWeight.w800,
-                color: SurgeColors.textPrimary,
-                letterSpacing: -1)),
+                color: SurgeColors.textPrimary, letterSpacing: -1)),
               const SizedBox(width: 10),
               if (streak > 0)
                 Container(
@@ -123,8 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: SurgeColors.lemonSoft,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+                    borderRadius: BorderRadius.circular(20)),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     const Text('🔥', style: TextStyle(fontSize: 12)),
                     const SizedBox(width: 4),
@@ -136,7 +150,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ]),
           ],
         )),
-        // Settings
         GestureDetector(
           onTap: () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => const SettingsScreen())),
@@ -145,14 +158,12 @@ class _HomeScreenState extends State<HomeScreen> {
             decoration: BoxDecoration(
               color: SurgeColors.card,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: SurgeColors.border),
-            ),
+              border: Border.all(color: SurgeColors.border)),
             child: const Icon(Icons.settings_outlined,
               color: SurgeColors.textMuted, size: 18),
           ),
         ),
         const SizedBox(width: 8),
-        // Add word
         GestureDetector(
           onTap: () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => const AddWordScreen()))
@@ -161,8 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 42, height: 42,
             decoration: BoxDecoration(
               gradient: SurgeColors.gradientViolet,
-              borderRadius: BorderRadius.circular(14),
-            ),
+              borderRadius: BorderRadius.circular(14)),
             child: const Icon(Icons.add_rounded,
               color: Colors.white, size: 22),
           ),
@@ -178,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(22, 20, 22, 0),
       child: Row(children: [
-        _miniStat('$total', 'Words', SurgeColors.violetLight),
+        _miniStat('$total',    'Words',    SurgeColors.violetLight),
         const SizedBox(width: 8),
         _miniStat('$mastered', 'Mastered', SurgeColors.mint),
         const SizedBox(width: 8),
@@ -193,8 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: SurgeColors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: SurgeColors.border),
-      ),
+        border: Border.all(color: SurgeColors.border)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(value, style: GoogleFonts.plusJakartaSans(
           fontSize: 22, fontWeight: FontWeight.w800,
@@ -227,7 +236,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
         ]),
         const SizedBox(height: 12),
-
         if (_loadingWotd)
           Container(
             height: 90,
@@ -236,8 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(22),
               border: Border.all(color: SurgeColors.border)),
             child: const Center(child: CircularProgressIndicator(
-              color: SurgeColors.violet, strokeWidth: 2)),
-          )
+              color: SurgeColors.violet, strokeWidth: 2)))
         else if (_wotd == null)
           Container(
             padding: const EdgeInsets.all(20),
@@ -264,91 +271,75 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12, color: SurgeColors.textMuted)),
                 ])),
-            ]),
-          )
+            ]))
         else
-          // Editorial WOTD card — big bold word, soft background
           Container(
             decoration: BoxDecoration(
               color: SurgeColors.lavenderSoft,
               borderRadius: BorderRadius.circular(22),
               border: Border.all(
                 color: SurgeColors.violet.withOpacity(0.2))),
-            child: Padding(
-              padding: const EdgeInsets.all(22),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: SurgeColors.violet.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20)),
-                      child: Text('TODAY', style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10, fontWeight: FontWeight.w800,
-                        color: SurgeColors.lavender, letterSpacing: 1.5)),
-                    ),
-                    const Spacer(),
-                    if ((_wotd!['partOfSpeech'] ?? '').isNotEmpty)
-                      Text(_wotd!['partOfSpeech'].toString(),
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12, color: SurgeColors.textMuted,
-                          fontStyle: FontStyle.italic)),
-                  ]),
-                  const SizedBox(height: 14),
-                  Text(_wotd!['word'] ?? '',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 34, fontWeight: FontWeight.w800,
-                      color: SurgeColors.textPrimary,
-                      letterSpacing: -1, height: 1.1)),
-                  const SizedBox(height: 10),
-                  Text(_wotd!['definition'] ?? '',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14, color: SurgeColors.textSecondary,
-                      height: 1.6)),
-                  if ((_wotd!['example'] ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: SurgeColors.background.withOpacity(0.4),
-                        borderRadius: BorderRadius.circular(12)),
-                      child: Text('💬  ${_wotd!['example']}',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          color: SurgeColors.textSecondary,
-                          fontStyle: FontStyle.italic, height: 1.5)),
-                    ),
-                  ],
-                  if ((_wotd!['funFact'] ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    Text('⚡  ${_wotd!['funFact']}',
+            padding: const EdgeInsets.all(22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: SurgeColors.violet.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20)),
+                    child: Text('TODAY', style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10, fontWeight: FontWeight.w800,
+                      color: SurgeColors.lavender, letterSpacing: 1.5))),
+                  const Spacer(),
+                  if ((_wotd!['partOfSpeech'] ?? '').toString().isNotEmpty)
+                    Text(_wotd!['partOfSpeech'].toString(),
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12, color: SurgeColors.textMuted,
-                        height: 1.5)),
-                  ],
+                        fontStyle: FontStyle.italic)),
+                ]),
+                const SizedBox(height: 14),
+                Text(_wotd!['word']?.toString() ?? '',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 34, fontWeight: FontWeight.w800,
+                    color: SurgeColors.textPrimary,
+                    letterSpacing: -1, height: 1.1)),
+                const SizedBox(height: 10),
+                Text(_wotd!['definition']?.toString() ?? '',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14, color: SurgeColors.textSecondary,
+                    height: 1.6)),
+                if ((_wotd!['example'] ?? '').toString().isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(12)),
+                    child: Text('💬  ${_wotd!['example']}',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13, color: SurgeColors.textSecondary,
+                        fontStyle: FontStyle.italic, height: 1.5))),
                 ],
-              ),
+                if ((_wotd!['funFact'] ?? '').toString().isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Text('⚡  ${_wotd!['funFact']}',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12, color: SurgeColors.textMuted,
+                      height: 1.5)),
+                ],
+              ],
             ),
           ),
       ]).animate().fadeIn(delay: 120.ms),
     );
   }
 
-  // Inspo-style rotating color category cards
   Widget _buildCategoryCards() {
     final current = _suggestions[_suggestionIndex];
     final color   = Color(current['color'] as int);
-    final colors  = [
-      SurgeColors.lavenderSoft, SurgeColors.mintSoft,
-      SurgeColors.peachSoft,    SurgeColors.lemonSoft,
-    ];
-    final accents = [
-      SurgeColors.lavender, SurgeColors.mint,
-      SurgeColors.peach,    SurgeColors.lemon,
-    ];
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(22, 22, 22, 0),
@@ -367,12 +358,9 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 color: i == _suggestionIndex
                   ? SurgeColors.mint : SurgeColors.border,
-                borderRadius: BorderRadius.circular(2)),
-            ))),
+                borderRadius: BorderRadius.circular(2))))),
         ]),
         const SizedBox(height: 12),
-
-        // Main rotating card
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 400),
           transitionBuilder: (child, anim) => FadeTransition(
@@ -408,10 +396,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       decoration: BoxDecoration(
                         color: color.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(20)),
-                      child: Text('NEW WORD', style: GoogleFonts.plusJakartaSans(
-                        fontSize: 9, fontWeight: FontWeight.w800,
-                        color: color, letterSpacing: 1.5)),
-                    ),
+                      child: Text('NEW WORD',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 9, fontWeight: FontWeight.w800,
+                          color: color, letterSpacing: 1.5))),
                     const SizedBox(height: 12),
                     Text(current['word']?.toString() ?? '',
                       style: GoogleFonts.plusJakartaSans(
@@ -430,17 +418,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: color.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(14)),
                   child: const Icon(Icons.add_rounded,
-                    color: Colors.white, size: 22),
-                ),
+                    color: Colors.white, size: 22)),
               ]),
             ),
           ),
         ),
-
         const SizedBox(height: 10),
-        // 4 small category pills
         Row(children: List.generate(4, (i) {
           final idx = (_suggestionIndex + i + 1) % _suggestions.length;
+          final c   = Color(_suggestions[idx]['color'] as int);
           return Expanded(
             child: GestureDetector(
               onTap: () => Navigator.push(context, MaterialPageRoute(
@@ -452,20 +438,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.symmetric(
                   vertical: 10, horizontal: 8),
                 decoration: BoxDecoration(
-                  color: Color(_suggestions[idx]['color'] as int)
-                    .withOpacity(0.1),
+                  color: c.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Color(_suggestions[idx]['color'] as int)
-                      .withOpacity(0.15))),
+                  border: Border.all(color: c.withOpacity(0.15))),
                 child: Text(
                   _suggestions[idx]['word']?.toString() ?? '',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11, fontWeight: FontWeight.w600,
                     color: SurgeColors.textSecondary),
                   maxLines: 1, overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center),
-              ),
+                  textAlign: TextAlign.center)),
             ),
           );
         })),
@@ -484,8 +466,7 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: BoxDecoration(
             color: SurgeColors.peachSoft,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: SurgeColors.peach.withOpacity(0.2))),
+            border: Border.all(color: SurgeColors.peach.withOpacity(0.2))),
           child: Row(children: [
             Container(
               width: 48, height: 48,
@@ -493,8 +474,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: SurgeColors.peach.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(14)),
               child: const Center(child: Text('🔥',
-                style: TextStyle(fontSize: 22))),
-            ),
+                style: TextStyle(fontSize: 22)))),
             const SizedBox(width: 14),
             Expanded(child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -514,8 +494,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: SurgeColors.peach.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(10)),
               child: const Icon(Icons.arrow_forward_rounded,
-                color: SurgeColors.peach, size: 16),
-            ),
+                color: SurgeColors.peach, size: 16)),
           ]),
         ),
       ).animate().fadeIn(delay: 200.ms),
@@ -532,8 +511,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const EmptyState(
             emoji: '📚',
             title: 'Bank is empty',
-            subtitle: 'Tap + to add your first word',
-          )
+            subtitle: 'Tap + to add your first word')
         else
           ...(_recent.asMap().entries.map((e) => WordCard(
             word: e.value,
