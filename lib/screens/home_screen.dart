@@ -23,7 +23,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, int> _stats = {};
   List<WordEntry> _recent = [];
   bool _loadingWotd = false;
-  bool _ready = false;
 
   final List<Map<String, dynamic>> _suggestions = [
     {'word': 'Ephemeral',     'hint': 'Lasting a very short time',         'color': 0xFF7C6EFA},
@@ -43,24 +42,18 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _init();
-  }
-
-  Future<void> _init() async {
-    _storage = await StorageService.get();
-    await _storage!.updateStreak();
-    if (!mounted) return;
-    setState(() {
-      _stats  = _storage!.getStats();
-      _recent = _storage!.getWords().take(4).toList();
-      _ready  = true;
-    });
-    _loadWotd();
-    // Start timer only after storage is ready
     _suggestionTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       if (!mounted) return;
       setState(() =>
         _suggestionIndex = (_suggestionIndex + 1) % _suggestions.length);
     });
+  }
+
+  Future<void> _init() async {
+    _storage = await StorageService.get();
+    await _storage!.updateStreak();
+    _refresh();
+    _loadWotd();
   }
 
   void _refresh() {
@@ -86,14 +79,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_ready) {
-      return Scaffold(
-        backgroundColor: SurgeColors.background,
-        body: const Center(child: CircularProgressIndicator(
-          color: SurgeColors.violet, strokeWidth: 2)),
-      );
-    }
-
     return Scaffold(
       backgroundColor: SurgeColors.background,
       body: SafeArea(
@@ -138,7 +123,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: SurgeColors.lemonSoft,
-                    borderRadius: BorderRadius.circular(20)),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     const Text('🔥', style: TextStyle(fontSize: 12)),
                     const SizedBox(width: 4),
@@ -158,7 +144,8 @@ class _HomeScreenState extends State<HomeScreen> {
             decoration: BoxDecoration(
               color: SurgeColors.card,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: SurgeColors.border)),
+              border: Border.all(color: SurgeColors.border),
+            ),
             child: const Icon(Icons.settings_outlined,
               color: SurgeColors.textMuted, size: 18),
           ),
@@ -172,7 +159,8 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 42, height: 42,
             decoration: BoxDecoration(
               gradient: SurgeColors.gradientViolet,
-              borderRadius: BorderRadius.circular(14)),
+              borderRadius: BorderRadius.circular(14),
+            ),
             child: const Icon(Icons.add_rounded,
               color: Colors.white, size: 22),
           ),
@@ -203,7 +191,8 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: SurgeColors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: SurgeColors.border)),
+        border: Border.all(color: SurgeColors.border),
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(value, style: GoogleFonts.plusJakartaSans(
           fontSize: 22, fontWeight: FontWeight.w800,
@@ -244,7 +233,8 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(22),
               border: Border.all(color: SurgeColors.border)),
             child: const Center(child: CircularProgressIndicator(
-              color: SurgeColors.violet, strokeWidth: 2)))
+              color: SurgeColors.violet, strokeWidth: 2)),
+          )
         else if (_wotd == null)
           Container(
             padding: const EdgeInsets.all(20),
@@ -271,7 +261,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12, color: SurgeColors.textMuted)),
                 ])),
-            ]))
+            ]),
+          )
         else
           Container(
             decoration: BoxDecoration(
@@ -279,58 +270,63 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(22),
               border: Border.all(
                 color: SurgeColors.violet.withOpacity(0.2))),
-            padding: const EdgeInsets.all(22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: SurgeColors.violet.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20)),
-                    child: Text('TODAY', style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10, fontWeight: FontWeight.w800,
-                      color: SurgeColors.lavender, letterSpacing: 1.5))),
-                  const Spacer(),
-                  if ((_wotd!['partOfSpeech'] ?? '').toString().isNotEmpty)
-                    Text(_wotd!['partOfSpeech'].toString(),
+            child: Padding(
+              padding: const EdgeInsets.all(22),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: SurgeColors.violet.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20)),
+                      child: Text('TODAY', style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10, fontWeight: FontWeight.w800,
+                        color: SurgeColors.lavender, letterSpacing: 1.5)),
+                    ),
+                    const Spacer(),
+                    if ((_wotd!['partOfSpeech'] ?? '').toString().isNotEmpty)
+                      Text(_wotd!['partOfSpeech'].toString(),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12, color: SurgeColors.textMuted,
+                          fontStyle: FontStyle.italic)),
+                  ]),
+                  const SizedBox(height: 14),
+                  Text(_wotd!['word']?.toString() ?? '',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 34, fontWeight: FontWeight.w800,
+                      color: SurgeColors.textPrimary,
+                      letterSpacing: -1, height: 1.1)),
+                  const SizedBox(height: 10),
+                  Text(_wotd!['definition']?.toString() ?? '',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14, color: SurgeColors.textSecondary,
+                      height: 1.6)),
+                  if ((_wotd!['example'] ?? '').toString().isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12)),
+                      child: Text('💬  ${_wotd!['example']}',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          color: SurgeColors.textSecondary,
+                          fontStyle: FontStyle.italic, height: 1.5)),
+                    ),
+                  ],
+                  if ((_wotd!['funFact'] ?? '').toString().isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Text('⚡  ${_wotd!['funFact']}',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12, color: SurgeColors.textMuted,
-                        fontStyle: FontStyle.italic)),
-                ]),
-                const SizedBox(height: 14),
-                Text(_wotd!['word']?.toString() ?? '',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 34, fontWeight: FontWeight.w800,
-                    color: SurgeColors.textPrimary,
-                    letterSpacing: -1, height: 1.1)),
-                const SizedBox(height: 10),
-                Text(_wotd!['definition']?.toString() ?? '',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14, color: SurgeColors.textSecondary,
-                    height: 1.6)),
-                if ((_wotd!['example'] ?? '').toString().isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(12)),
-                    child: Text('💬  ${_wotd!['example']}',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13, color: SurgeColors.textSecondary,
-                        fontStyle: FontStyle.italic, height: 1.5))),
+                        height: 1.5)),
+                  ],
                 ],
-                if ((_wotd!['funFact'] ?? '').toString().isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Text('⚡  ${_wotd!['funFact']}',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12, color: SurgeColors.textMuted,
-                      height: 1.5)),
-                ],
-              ],
+              ),
             ),
           ),
       ]).animate().fadeIn(delay: 120.ms),
@@ -358,7 +354,8 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 color: i == _suggestionIndex
                   ? SurgeColors.mint : SurgeColors.border,
-                borderRadius: BorderRadius.circular(2))))),
+                borderRadius: BorderRadius.circular(2)),
+            ))),
         ]),
         const SizedBox(height: 12),
         AnimatedSwitcher(
@@ -399,7 +396,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Text('NEW WORD',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 9, fontWeight: FontWeight.w800,
-                          color: color, letterSpacing: 1.5))),
+                          color: color, letterSpacing: 1.5)),
+                    ),
                     const SizedBox(height: 12),
                     Text(current['word']?.toString() ?? '',
                       style: GoogleFonts.plusJakartaSans(
@@ -418,7 +416,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: color.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(14)),
                   child: const Icon(Icons.add_rounded,
-                    color: Colors.white, size: 22)),
+                    color: Colors.white, size: 22),
+                ),
               ]),
             ),
           ),
@@ -447,7 +446,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontSize: 11, fontWeight: FontWeight.w600,
                     color: SurgeColors.textSecondary),
                   maxLines: 1, overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center)),
+                  textAlign: TextAlign.center),
+              ),
             ),
           );
         })),
@@ -466,7 +466,8 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: BoxDecoration(
             color: SurgeColors.peachSoft,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: SurgeColors.peach.withOpacity(0.2))),
+            border: Border.all(
+              color: SurgeColors.peach.withOpacity(0.2))),
           child: Row(children: [
             Container(
               width: 48, height: 48,
@@ -474,7 +475,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: SurgeColors.peach.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(14)),
               child: const Center(child: Text('🔥',
-                style: TextStyle(fontSize: 22)))),
+                style: TextStyle(fontSize: 22))),
+            ),
             const SizedBox(width: 14),
             Expanded(child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -494,7 +496,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: SurgeColors.peach.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(10)),
               child: const Icon(Icons.arrow_forward_rounded,
-                color: SurgeColors.peach, size: 16)),
+                color: SurgeColors.peach, size: 16),
+            ),
           ]),
         ),
       ).animate().fadeIn(delay: 200.ms),
@@ -511,7 +514,8 @@ class _HomeScreenState extends State<HomeScreen> {
           const EmptyState(
             emoji: '📚',
             title: 'Bank is empty',
-            subtitle: 'Tap + to add your first word')
+            subtitle: 'Tap + to add your first word',
+          )
         else
           ...(_recent.asMap().entries.map((e) => WordCard(
             word: e.value,
