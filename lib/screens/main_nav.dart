@@ -16,21 +16,33 @@ class MainNav extends StatefulWidget {
 class _MainNavState extends State<MainNav> {
   int _index = 0;
 
-  final _pages = const [
-    HomeScreen(), BankScreen(), DrillScreen(),
-    NotesScreen(), ProgressScreen(),
-  ];
-
   void _onTap(int i) {
     HapticFeedback.lightImpact();
     setState(() => _index = i);
+  }
+
+  Widget _buildPage() {
+    switch (_index) {
+      case 0: return const HomeScreen();
+      case 1: return const BankScreen();
+      case 2: return const DrillScreen();
+      case 3: return const NotesScreen();
+      case 4: return const ProgressScreen();
+      default: return const HomeScreen();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: SurgeColors.background,
-      body: IndexedStack(index: _index, children: _pages),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: KeyedSubtree(
+          key: ValueKey(_index),
+          child: _buildPage(),
+        ),
+      ),
       bottomNavigationBar: _buildNavBar(),
     );
   }
@@ -64,27 +76,29 @@ class _MainNavState extends State<MainNav> {
       child: GestureDetector(
         onTap: () => _onTap(idx),
         behavior: HitTestBehavior.opaque,
-        child: Column(mainAxisSize: MainAxisSize.min,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-            decoration: BoxDecoration(
-              color: sel
-                ? SurgeColors.violet.withOpacity(0.12)
-                : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+              decoration: BoxDecoration(
+                color: sel
+                  ? SurgeColors.violet.withOpacity(0.12)
+                  : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(sel ? active : inactive,
+                color: sel ? SurgeColors.violetLight : SurgeColors.textMuted,
+                size: 22),
             ),
-            child: Icon(sel ? active : inactive,
-              color: sel ? SurgeColors.violetLight : SurgeColors.textMuted,
-              size: 22),
-          ),
-          const SizedBox(height: 3),
-          Text(label, style: GoogleFonts.plusJakartaSans(
-            fontSize: 10, fontWeight: FontWeight.w600,
-            color: sel ? SurgeColors.violetLight : SurgeColors.textMuted)),
-        ]),
+            const SizedBox(height: 3),
+            Text(label, style: GoogleFonts.plusJakartaSans(
+              fontSize: 10, fontWeight: FontWeight.w600,
+              color: sel ? SurgeColors.violetLight : SurgeColors.textMuted)),
+          ],
+        ),
       ),
     );
   }

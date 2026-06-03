@@ -66,6 +66,7 @@ class _BankScreenState extends State<BankScreen> {
         ]),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'bank_fab',
         onPressed: () => Navigator.push(context,
           MaterialPageRoute(builder: (_) => const AddWordScreen())).then((_) => _refresh()),
         backgroundColor: SurgeColors.violet,

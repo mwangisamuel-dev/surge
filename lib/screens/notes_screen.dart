@@ -85,10 +85,11 @@ class _NotesScreenState extends State<NotesScreen> {
         ]),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'notes_fab',
         onPressed: () => _openNote(null),
         backgroundColor: SurgeColors.warning,
         child: const Icon(Icons.edit_rounded, color: Colors.black),
-      ),
+      ),   
     );
   }
 }
