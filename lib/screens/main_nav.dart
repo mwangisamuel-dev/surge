@@ -120,7 +120,7 @@ class _MainNavState extends State<MainNav> {
               boxShadow: [
                 BoxShadow(
                     color: (active ? SurgeColors.mint : SurgeColors.violet)
-                        .withOpacity(0.35),
+                        .withAlpha(89),
                     blurRadius: 14,
                     offset: const Offset(0, 4))
               ],
