@@ -44,9 +44,9 @@ class _MainNavState extends State<MainNav> {
 
   Widget _buildNavBar() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: SurgeColors.surface,
-        border: const Border(
+        border: Border(
             top: BorderSide(color: SurgeColors.border, width: 0.5)),
       ),
       child: SafeArea(
