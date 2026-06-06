@@ -35,6 +35,7 @@ class _MainNavState extends State<MainNav> {
     return Scaffold(
       backgroundColor: SurgeColors.background,
       body: IndexedStack(
+        sizing: StackFit.expand,
         index: _index,
         children: _pages,
       ),
