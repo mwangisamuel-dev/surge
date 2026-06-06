@@ -46,8 +46,7 @@ class _MainNavState extends State<MainNav> {
     return Container(
       decoration: const BoxDecoration(
         color: SurgeColors.surface,
-        border: Border(
-            top: BorderSide(color: SurgeColors.border, width: 0.5)),
+        border: Border(top: BorderSide(color: SurgeColors.border, width: 0.5)),
       ),
       child: SafeArea(
         top: false,
