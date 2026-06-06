@@ -23,11 +23,11 @@ class _MainNavState extends State<MainNav> {
   }
 
   static const List<Widget> _pages = [
-    HomeScreen(),
-    BankScreen(),
-    DrillScreen(),
-    NotesScreen(),
-    ProgressScreen(),
+    const HomeScreen(),
+    const BankScreen(),
+    const DrillScreen(),
+    const NotesScreen(),
+    const ProgressScreen(),
   ];
 
   @override
