@@ -10,7 +10,8 @@ import 'progress_screen.dart';
 
 class MainNav extends StatefulWidget {
   const MainNav({super.key});
-  @override State<MainNav> createState() => _MainNavState();
+  @override
+  State<MainNav> createState() => _MainNavState();
 }
 
 class _MainNavState extends State<MainNav> {
@@ -21,27 +22,21 @@ class _MainNavState extends State<MainNav> {
     setState(() => _index = i);
   }
 
-  Widget _buildPage() {
-    switch (_index) {
-      case 0: return const HomeScreen();
-      case 1: return const BankScreen();
-      case 2: return const DrillScreen();
-      case 3: return const NotesScreen();
-      case 4: return const ProgressScreen();
-      default: return const HomeScreen();
-    }
-  }
+  static const List<Widget> _pages = [
+    HomeScreen(),
+    BankScreen(),
+    DrillScreen(),
+    NotesScreen(),
+    ProgressScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: SurgeColors.background,
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
-        child: KeyedSubtree(
-          key: ValueKey(_index),
-          child: _buildPage(),
-        ),
+      body: IndexedStack(
+        index: _index,
+        children: _pages,
       ),
       bottomNavigationBar: _buildNavBar(),
     );
@@ -52,18 +47,20 @@ class _MainNavState extends State<MainNav> {
       decoration: BoxDecoration(
         color: SurgeColors.surface,
         border: const Border(
-          top: BorderSide(color: SurgeColors.border, width: 0.5)),
+            top: BorderSide(color: SurgeColors.border, width: 0.5)),
       ),
       child: SafeArea(
         top: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Row(children: [
-            _navItem(0, Icons.home_rounded,      Icons.home_outlined,      'Home'),
-            _navItem(1, Icons.menu_book_rounded, Icons.menu_book_outlined, 'Bank'),
+            _navItem(0, Icons.home_rounded, Icons.home_outlined, 'Home'),
+            _navItem(
+                1, Icons.menu_book_rounded, Icons.menu_book_outlined, 'Bank'),
             _centerDrillButton(),
-            _navItem(3, Icons.edit_note_rounded, Icons.edit_outlined,      'Notes'),
-            _navItem(4, Icons.bar_chart_rounded, Icons.bar_chart_outlined, 'Stats'),
+            _navItem(3, Icons.edit_note_rounded, Icons.edit_outlined, 'Notes'),
+            _navItem(
+                4, Icons.bar_chart_rounded, Icons.bar_chart_outlined, 'Stats'),
           ]),
         ),
       ),
@@ -84,19 +81,21 @@ class _MainNavState extends State<MainNav> {
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
               decoration: BoxDecoration(
-                color: sel
-                  ? SurgeColors.violet.withOpacity(0.12)
-                  : Colors.transparent,
+                color:
+                    sel ? SurgeColors.violet.withAlpha(31) : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(sel ? active : inactive,
-                color: sel ? SurgeColors.violetLight : SurgeColors.textMuted,
-                size: 22),
+                  color: sel ? SurgeColors.violetLight : SurgeColors.textMuted,
+                  size: 22),
             ),
             const SizedBox(height: 3),
-            Text(label, style: GoogleFonts.plusJakartaSans(
-              fontSize: 10, fontWeight: FontWeight.w600,
-              color: sel ? SurgeColors.violetLight : SurgeColors.textMuted)),
+            Text(label,
+                style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color:
+                        sel ? SurgeColors.violetLight : SurgeColors.textMuted)),
           ],
         ),
       ),
@@ -111,19 +110,23 @@ class _MainNavState extends State<MainNav> {
         child: Center(
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            width: 52, height: 52,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
               gradient: active
-                ? SurgeColors.gradientMint
-                : SurgeColors.gradientViolet,
+                  ? SurgeColors.gradientMint
+                  : SurgeColors.gradientViolet,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(
-                color: (active ? SurgeColors.mint : SurgeColors.violet)
-                  .withOpacity(0.35),
-                blurRadius: 14, offset: const Offset(0, 4))],
+              boxShadow: [
+                BoxShadow(
+                    color: (active ? SurgeColors.mint : SurgeColors.violet)
+                        .withOpacity(0.35),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4))
+              ],
             ),
-            child: const Icon(Icons.style_rounded,
-              color: Colors.white, size: 22),
+            child:
+                const Icon(Icons.style_rounded, color: Colors.white, size: 22),
           ),
         ),
       ),
