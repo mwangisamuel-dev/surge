@@ -18,6 +18,7 @@ class _MainNavState extends State<MainNav> {
   int _index = 0;
 
   void _onTap(int i) {
+    debugPrint('MainNav tapped tab: $i');
     HapticFeedback.lightImpact();
     setState(() => _index = i);
   }
@@ -32,12 +33,63 @@ class _MainNavState extends State<MainNav> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('MainNav build active tab: $_index');
     return Scaffold(
       backgroundColor: SurgeColors.background,
-      body: IndexedStack(
-        sizing: StackFit.expand,
-        index: _index,
-        children: _pages,
+      body: Stack(
+        children: [
+          IndexedStack(
+            sizing: StackFit.expand,
+            index: _index,
+            children: _pages,
+          ),
+          Positioned(
+            top: 16,
+            left: 16,
+            right: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.20),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                    color: SurgeColors.violetLight.withOpacity(0.7),
+                    width: 1.2),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('DEBUG OVERLAY',
+                      style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: SurgeColors.violet)),
+                  const SizedBox(height: 8),
+                  Text(
+                      'Active tab: ${[
+                        'Home',
+                        'Bank',
+                        'Drill',
+                        'Notes',
+                        'Stats'
+                      ][_index]}',
+                      style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: SurgeColors.textPrimary)),
+                  const SizedBox(height: 4),
+                  Text('Pages loaded: ${_pages.length}',
+                      style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12, color: SurgeColors.textSecondary)),
+                  const SizedBox(height: 4),
+                  Text('Use full restart if overlay missing',
+                      style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11, color: SurgeColors.textSecondary)),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: _buildNavBar(),
     );
